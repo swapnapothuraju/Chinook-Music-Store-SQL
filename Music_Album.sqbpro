@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="chinook.db" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="3"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="3862"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="3" parent="0"/><expanded_item id="5" parent="0"/><expanded_item id="8" parent="0"/><expanded_item id="9" parent="0"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><table title="albums" custom_title="0" dock_id="2" table="4,6:mainalbums"/><dock_state state="000000ff00000000fd00000001000000020000000000000000fc0100000002fb000000160064006f0063006b00420072006f00770073006500310100000000ffffffff0000000000000000fb000000160064006f0063006b00420072006f00770073006500320100000000ffffffff0000011e00ffffff000000000000000000000004000000040000000800000008fc00000000"/><default_encoding codec=""/><browse_table_settings/></tab_browse><tab_sql><sql name="SQL 1*">------------------------------------------------------ Basic Level (1–20) SQL Queries
+
+-- 1)Display all records from the artists table.
+ SELECT * FROM artists;
+ 
+ -- 2) Show only the Name column from the genres table
+ SELECT name FROM genres;
+ 
+-- 3)List all customers’ first and last names
+SELECT FirstName, LastName FROM customers;
+
+-- 4) Find all albums with their titles
+SELECT title FROM albums;
+
+-- 5)Display all tracks with their unit price
+SELECT name, unitprice FROM tracks;
+
+-- 6) Show all invoices where the total amount is greater than 10
+SELECT * FROM invoices WHERE total &gt; 10;
+
+-- 7)List customers who live in the USA
+SELECT * FROM customers WHERE country = 'USA';
+
+--8 )Count the total number of tracks
+SELECT COUNT(*) AS total_tracks FROM tracks;
+
+-- 9)Find the maximum unit price of a track
+SELECT MAX(unitprice) AS max_price FROM tracks;
+
+-- 10)Find the minimum invoice total
+SELECT MIN(total) AS min_invoice_total FROM invoices;
+
+-- 11)Show all employees’ names and titles
+SELECT firstname, lastname, title FROM employees;
+
+--12). Display distinct billing countries from invoices
+SELECT DISTINCT billingcountry FROM invoices;
+
+--13 )Find all tracks longer than 5 minutes
+SELECT name, milliseconds FROM tracks WHERE milliseconds &gt; 300000;
+
+-- 14)Show albums sorted alphabetically by title
+SELECT title FROM albums ORDER BY title ASC;
+
+--15)List customers sorted by last name in descending order
+SELECT firstname, lastname FROM customers ORDER BY lastname DESC;
+
+--16)Count how many genres are available
+SELECT COUNT(*) AS total_genres FROM genres;
+
+--17)Show tracks with unit price between 0.99 and 1.99
+SELECT name, unitprice FROM tracks WHERE unitprice BETWEEN 0.99 AND 1.99;
+
+--18)Display customers whose city starts with letter ‘B’
+SELECT * FROM customers WHERE city LIKE 'B%';
+
+--19)Find total number of invoices
+SELECT COUNT(*) AS total_invoices FROM invoices;
+
+--20 )Show all playlist names
+SELECT name FROM playlists;
+
+
+-----------------------------------------------Intermediate Level (21–35) SQL Queries
+-- 21)Display track names along with their album titles
+SELECT t.name AS track_name, al.title AS album_title
+FROM tracks t
+JOIN albums al ON t.albumid = al.albumid;
+
+-- 22)List album titles with their artist names
+SELECT al.title AS album_title, ar.name AS artist_name
+FROM albums al
+JOIN artists ar ON al.artistid = ar.artistid;
+
+--23) Show customer names along with their support representative
+SELECT 
+    c.firstname || ' ' || c.lastname AS customer_name,
+    e.firstname || ' ' || e.lastname AS support_rep
+FROM customers c
+JOIN employees e ON c.supportrepid = e.employeeid;
+
+--24)Display invoice details along with customer names
+SELECT 
+    i.invoiceid,
+    c.firstname || ' ' || c.lastname AS customer_name,
+    i.invoicedate,
+    i.total
+FROM invoices i
+JOIN customers c ON i.customerid = c.customerid;
+
+--25)Show track name, genre name, and media type
+SELECT 
+    t.name AS track_name,
+    g.name AS genre,
+    m.name AS media_type
+FROM tracks t
+JOIN genres g ON t.genreid = g.genreid
+JOIN media_types m ON t.mediatypeid = m.mediatypeid;
+
+-- 26)Count how many tracks are there in each genre
+SELECT g.name AS genre, COUNT(t.trackid) AS total_tracks
+FROM genres g
+JOIN tracks t ON g.genreid = t.genreid
+GROUP BY g.name;
+
+-- 27)Find total sales per country
+SELECT billingcountry, SUM(total) AS total_sales
+FROM invoices
+GROUP BY billingcountry
+ORDER BY total_sales DESC;
+
+-- 28)List top 5 most expensive tracks
+SELECT name, unitprice
+FROM tracks
+ORDER BY unitprice DESC
+LIMIT 5;
+
+--29) Show number of albums created by each artist
+SELECT ar.name AS artist, COUNT(al.albumid) AS total_albums
+FROM artists ar
+JOIN albums al ON ar.artistid = al.artistid
+GROUP BY ar.name;
+
+--30)Display customers who have made more than 5 purchases
+SELECT 
+    c.firstname || ' ' || c.lastname AS customer_name,
+    COUNT(i.invoiceid) AS total_purchases
+FROM customers c
+JOIN invoices i ON c.customerid = i.customerid
+GROUP BY c.customerid
+HAVING COUNT(i.invoiceid) &gt; 5;
+
+--31)Show invoices with total greater than the average invoice total
+SELECT * FROM invoices
+WHERE total &gt; (
+    SELECT AVG(total)
+    FROM invoices
+);
+
+--32)Find total quantity of tracks sold
+SELECT SUM(quantity) AS total_tracks_sold FROM invoice_items;
+
+-- 33)Display playlists along with number of tracks in each playlist
+SELECT 
+    p.name AS playlist_name,
+    COUNT(pt.trackid) AS total_tracks
+FROM playlists p
+JOIN playlist_track pt ON p.playlistid = pt.playlistid
+GROUP BY p.name;
+
+-- 34)Show employees who report to another employee
+SELECT 
+    e.firstname || ' ' || e.lastname AS employee_name,
+    m.firstname || ' ' || m.lastname AS manager_name
+FROM employees e
+JOIN employees m ON e.reportsto = m.employeeid;
+
+-- 35). Find customers who never made any purchase
+SELECT c.firstname, c.lastname
+FROM customers c
+LEFT JOIN invoices i ON c.customerid = i.customerid
+WHERE i.invoiceid IS NULL;
+
+
+----------------------------------------------------Advanced Level (36–50) SQL Queries
+-- 36)Top 5 customers who spent the most money
+SELECT 
+    c.firstname || ' ' || c.lastname AS customer_name,
+    SUM(i.total) AS total_spent
+FROM customers c
+JOIN invoices i ON c.customerid = i.customerid
+GROUP BY c.customerid
+ORDER BY total_spent DESC
+LIMIT 5;
+
+--37). Most popular genre based on tracks sold
+SELECT g.name AS genre, SUM(il.quantity) AS total_sold
+FROM genres g
+JOIN tracks t ON g.genreid = t.genreid
+JOIN invoice_items il ON t.trackid = il.trackid
+GROUP BY g.name
+ORDER BY total_sold DESC
+LIMIT 1;
+
+-- 38)Artists whose tracks appear in the most playlists
+SELECT ar.name AS artist, COUNT(pt.playlistid) AS playlist_count
+FROM artists ar
+JOIN albums al ON ar.artistid = al.artistid
+JOIN tracks t ON al.albumid = t.albumid
+JOIN playlist_track pt ON t.trackid = pt.trackid
+GROUP BY ar.name
+ORDER BY playlist_count DESC;
+
+-- 39)Longest track in each genre
+SELECT 
+    g.name AS genre,
+    t.name AS track_name,
+    MAX(t.milliseconds) AS duration
+FROM genres g
+JOIN tracks t ON g.genreid = t.genreid
+GROUP BY g.name;
+
+--40)Monthly sales totals
+SELECT 
+    strftime('%Y-%m', invoicedate) AS month,
+    SUM(total) AS monthly_sales
+FROM invoices
+GROUP BY month
+ORDER BY month;
+
+--41)Employee supporting the highest number of customers
+
+SELECT 
+    e.firstname || ' ' || e.lastname AS employee_name,
+    COUNT(c.customerid) AS total_customers
+FROM employees e
+JOIN customers c ON e.employeeid = c.supportrepid
+GROUP BY e.employeeid
+ORDER BY total_customers DESC
+LIMIT 1;
+
+--42)  Customers who purchased from more than 3 genres
+SELECT 
+    c.firstname || ' ' || c.lastname AS customer_name,
+    COUNT(DISTINCT g.genreid) AS genre_count
+FROM customers c
+JOIN invoices i ON c.customerid = i.customerid
+JOIN invoice_items il ON i.invoiceid = il.invoiceid
+JOIN tracks t ON il.trackid = t.trackid
+JOIN genres g ON t.genreid = g.genreid
+GROUP BY c.customerid
+HAVING genre_count &gt; 3;
+
+--43)Albums with more than 15 tracks
+SELECT al.title AS album, COUNT(t.trackid) AS track_count
+FROM albums al
+JOIN tracks t ON al.albumid = t.albumid
+GROUP BY al.albumid
+HAVING track_count &gt; 15;
+
+--44)Tracks that were never sold
+SELECT t.name
+FROM tracks t
+LEFT JOIN invoice_items il ON t.trackid = il.trackid
+WHERE il.invoicelineid IS NULL;
+
+--45)Average track duration per genre
+SELECT g.name AS genre, AVG(t.milliseconds) AS avg_duration
+FROM genres g
+JOIN tracks t ON g.genreid = t.genreid
+GROUP BY g.name;
+
+-- 46)Country with the highest revenue
+SELECT billingcountry, SUM(total) AS revenue
+FROM invoices
+GROUP BY billingcountry
+ORDER BY revenue DESC
+LIMIT 1;
+
+-- 47)Top 3 artists based on total sales
+SELECT 
+    ar.name AS artist,
+    SUM(il.unitprice * il.quantity) AS total_sales
+FROM artists ar
+JOIN albums al ON ar.artistid = al.artistid
+JOIN tracks t ON al.albumid = t.albumid
+JOIN invoice_items il ON t.trackid = il.trackid
+GROUP BY ar.artistid
+ORDER BY total_sales DESC
+LIMIT 3;
+
+--48)Customers who bought all tracks from a particular album
+
+SELECT 
+    c.firstname || ' ' || c.lastname AS customer_name,
+    al.title AS album
+FROM customers c
+JOIN invoices i ON c.customerid = i.customerid
+JOIN invoice_items il ON i.invoiceid = il.invoiceid
+JOIN tracks t ON il.trackid = t.trackid
+JOIN albums al ON t.albumid = al.albumid
+GROUP BY c.customerid, al.albumid
+HAVING COUNT(DISTINCT t.trackid) = (
+    SELECT COUNT(*)
+    FROM tracks
+    WHERE albumid = al.albumid
+);
+
+--49)Playlists containing tracks from more than 5 genres
+
+SELECT 
+    p.name AS playlist,
+    COUNT(DISTINCT g.genreid) AS genre_count
+FROM playlists p
+JOIN playlist_track pt ON p.playlistid = pt.playlistid
+JOIN tracks t ON pt.trackid = t.trackid
+JOIN genres g ON t.genreid = g.genreid
+GROUP BY p.playlistid
+HAVING genre_count &gt; 5;
+
+-- 50)Artist → Album → Track count → Total sales report
+
+SELECT 
+    ar.name AS artist,
+    al.title AS album,
+    COUNT(DISTINCT t.trackid) AS track_count,
+    SUM(il.unitprice * il.quantity) AS total_sales
+FROM artists ar
+JOIN albums al ON ar.artistid = al.artistid
+JOIN tracks t ON al.albumid = t.albumid
+LEFT JOIN invoice_items  il ON t.trackid = il.trackid
+GROUP BY ar.name, al.title
+ORDER BY total_sales DESC;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</sql><current_tab id="0"/></tab_sql></sqlb_project>
